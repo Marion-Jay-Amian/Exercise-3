@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Operations</title>
+    
+    <style>
+        html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    flex-direction: column;
+    text-align: center;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+input {
+    margin: 5px;
+    padding: 8px;
+    width: 300px;
+    text-align: center;
+}
+
+button {
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+input {
+    margin: 5px;
+    padding: 8px;
+    width: 300px;
+    text-align: center;
+}
+
+
+#output {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    width: 400px;
+    text-align: center;
+}
+
+    </style>
+</head>
+<body>
+    <h1>Person Information</h1>
+
+    <form id="infoForm">
+        <input type="text" id="name" name="name" placeholder="Enter Name" required><br>
+        <input type="number" id="age" name="age" placeholder="Enter Age" required><br>
+        <input type="email" id="email" name="email" placeholder="Enter Email" required><br>
+        <button type="button" id="saveFile">Save Information</button>
+        <button type="button" id="loadFile">Load File Contents</button>
+        <button type="button" id="readFile">Read File Line by Line</button>
+    </form>
+
+    <div id="output"></div>
+
+    <script>
+        document.getElementById('saveFile').addEventListener('click', function() {
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const email = document.getElementById('email').value;
+
+            fetch('grp1_amianmarionjay_ex3.php?action=create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `name=${encodeURIComponent(name)}&age=${encodeURIComponent(age)}&email=${encodeURIComponent(email)}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data.includes('already exists')) {
+                    return fetch('grp1_amianmarionjay_ex3.php?action=append', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `name=${encodeURIComponent(name)}&age=${encodeURIComponent(age)}&email=${encodeURIComponent(email)}`
+                    });
+                } else {
+                    return Promise.resolve({ text: () => data });
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('output').innerText = data;
+                document.getElementById('infoForm').reset();
+                if (data.includes('created') || data.includes('appended')) {
+                    document.getElementById('output').innerText += '\nFile saved successfully!';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('output').innerText = 'An error occurred while saving the file.';
+            });
+        });
+
+        document.getElementById('loadFile').addEventListener('click', function() {
+            const name = document.getElementById('name').value;
+
+            fetch(`grp1_amianmarionjay_ex3.php?action=load&name=${encodeURIComponent(name)}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('output').innerText = data;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('readFile').addEventListener('click', function() {
+            const name = document.getElementById('name').value;
+
+            fetch(`grp1_amianmarionjay_ex3.php?action=read&name=${encodeURIComponent(name)}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('output').innerText = data;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
